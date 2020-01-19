@@ -1,60 +1,33 @@
 import React from 'react';
+import EditNode from './EditNode.js';
+import EditEdge from './EditEdge.js';
 
-class DataGrid extends React.PureComponent {
-    constructor() {
-        super();
-        this.state = {
-            initalStrength: 0,
-            startAtPercentOfTimeline: 0
+class RelationshipEditor extends React.PureComponent {
+    renderPanel = () => {
+        const {db, editorState, updateOccurred} = this.props;
+        switch(editorState.key)
+        {
+            case 'node': return <EditNode db={db} nodeId={editorState.node.id} updateOccurred={updateOccurred}/>;
+            case 'relationship': return <EditEdge db={db} from={editorState.relationship.from} to={editorState.relationship.to} updateOccurred={updateOccurred}/>;
+            default: return '';
         }
-        this.initalState =  {...this.state};
-    }
-
-    componentDidUpdate(prevProps) {
-        if(this.props.editorState.label !== prevProps.editorState.label) {
-            this.setState(this.initalState);
-        }
-    }
-
-    update = (key, value) =>{
-        const val = {};
-        val[key] = value;
-        this.setState(val);
-    }
-
-    addEdgeAsync = async () => {
-        await this.props.addEdgeAsync({
-            from: this.props.editorState.fromId, 
-            to: this.props.editorState.toId, 
-            strength: parseFloat(this.state.initalStrength), 
-            startAtPercentOfTimeline: this.state.startAtPercentOfTimeline
-        });
     }
 
     render() {
-        var {label} = this.props.editorState;
-        return <div className="h-25 overflow-auto">
-            {label ? <div className="container-fluid">
+        const {key} = this.props.editorState;
+        const label = key === 'node' ? 'Edit Character' : 'Edit Relationship';
+        return <div>
+            {key ? <div className="container-fluid">
                 <div className="row">
                     <div className="col-12">
                         <div className="h5 text-center">{label}</div>
                     </div>
                 </div>
-                <div className="row">
-                    <div className="col-3">
-                        <input type="number" className="form-control" onChange={(e) => this.update('initalStrength', e.target.value)} value={this.state.initalStrength}/>
-                    </div>
-                    <div className="col-3">
-                        <input type="number" className="form-control" onChange={(e) => this.update('startAtPercentOfTimeline', Math.min(100, Math.max(0, e.target.value)))} value={this.state.startAtPercentOfTimeline}/>
-                    </div>
-                    <div className="col-3">
-                        <button className="btn" onClick={this.addEdgeAsync}>Add/Edit Edge</button>
-                    </div>
-                </div>
+                {this.renderPanel()}
             </div>
         : '' }
         </div>;
     }
 }
 
-export default DataGrid;
+export default RelationshipEditor;

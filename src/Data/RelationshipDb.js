@@ -1,3 +1,15 @@
+// var DBDeleteRequest = window.indexedDB.deleteDatabase("first-story-relationship-graph");
+
+// DBDeleteRequest.onerror = function(event) {
+//   console.log("Error deleting database.");
+// };
+ 
+// DBDeleteRequest.onsuccess = function(event) {
+//   console.log("Database deleted successfully");
+    
+//   console.log(event.result); // should be undefined
+// };
+
 class RelationshipDb {
     constructor(storyName) {
         var dbPromise = new Promise((resolve, reject) => {
@@ -11,7 +23,7 @@ class RelationshipDb {
             };
         
             req.onupgradeneeded = function (evt) {
-                const edgeStore = evt.currentTarget.result.createObjectStore('edge', { keyPath: 'id', autoIncrement: true });
+                const edgeStore = evt.currentTarget.result.createObjectStore('edge', { keyPath: 'relation' });
                 evt.currentTarget.result.createObjectStore('node', { keyPath: 'id', autoIncrement: true });
 
                 edgeStore.createIndex('from', 'from', { unique: false });
@@ -41,23 +53,33 @@ class RelationshipDb {
 
         function doUpdate(db, storeName, obj, method) {
             return new Promise((resolve) => {
-                var add = getObjectStore(db, storeName, 'readwrite')[method](obj);
-                add.onsuccess = () => resolve(true);
-                add.onerror = () => resolve(false);
+                var tx = db.transaction(storeName, 'readwrite');
+                if(method === 'add')
+                    tx.oncomplete = (e) => resolve(addUpdate.result);
+                    
+                var addUpdate = tx.objectStore(storeName)[method](obj);
+    
+                if(method !== 'add')
+                    addUpdate.onsuccess = () => resolve(true);
+                    
+                addUpdate.onerror = () => resolve(false);
             });
         }
 
         function doGet(db, storeName, key) {
             return new Promise(resolve => {
                 const req = getObjectStore(db, storeName, 'readonly').get(key);
-                req.onsuccess = (e) => resolve(e.target.result);
+                req.onsuccess = (e) => resolve(req.result);
                 req.onerror = () => resolve(false);
             });
         }
 
-        function doGetCollection(db, storeName, keyRange) {
-            const store = getObjectStore(db, storeName, 'readonly');
-            return runCursor(store.openCursor(keyRange));
+        function doGetAll(db, storeName) {
+            return new Promise(resolve => {
+                const req = getObjectStore(db, storeName, 'readonly').getAll();
+                req.onsuccess = (e) => resolve(req.result);
+                req.onerror = () => resolve(false);
+            });
         }
 
         this.getEdgeAsync = async (key) => {
@@ -67,7 +89,7 @@ class RelationshipDb {
 
         this.getNodeAsync = async (key) =>{
             const db = await dbPromise;
-            return doGet(db, 'node', key);
+            return doGet(db, 'node', parseInt(key));
         }
 
         this.addEdgeAsync = async (edge) => {
@@ -90,19 +112,21 @@ class RelationshipDb {
             return await doUpdate(db, 'node', node, 'put');
         }
 
-        this.getEdgesGreaterThanOrEqualToId = async(value) => {
+        this.getAllEdges = async(value) => {
             const db = await dbPromise;
-            return await doGetCollection(db, 'edge', IDBKeyRange.lowerBound(value));
+            return await doGetAll(db, 'edge');
         }
 
-        this.getNodesGreaterThanOrEqualToId = async(value) => {
+        this.getAllNodes = async(value) => {
             const db = await dbPromise;
-            return await doGetCollection(db, 'node', IDBKeyRange.lowerBound(value));
+            return await doGetAll(db, 'node');
         }
 
         this.getAllEdgesFrom = async(value) => {
             const db = await dbPromise;
-            await runCursor(getObjectStore(db, 'edge', 'readonly').index('from').openCursor(IDBKeyRange.only(value)));
+            return await runCursor(getObjectStore(db, 'edge', 'readonly')
+                .index('from')
+                .openCursor(IDBKeyRange.only(parseInt(value))));
         }
     }
 }
