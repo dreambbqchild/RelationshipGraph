@@ -52,8 +52,9 @@ class EditEdge extends React.PureComponent {
         this.props.updateOccurred({ op: op, type: 'edge', id: edgeId, props: ['points'] });
     }
 
-    renderRows() {
-        return this.state.points.map((row, i) => {
+    renderRows() {        
+        return Object.keys(this.state.points).map((i) => {
+            const row = this.state.points[i];
             return <div className="row" key={i}>
                 <div className="col-3">
                     <div className="form-group">
