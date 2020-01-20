@@ -174,11 +174,7 @@ class Cytoscape extends React.PureComponent {
       <div className="flex-grow-1 position-relative">
         <graph-area></graph-area>
       </div>
-      <div className="row">
-        <div className="col-12">
-          <TimeSlider timeChanged={this.timeChanged}/>
-        </div>
-      </div>
+      <TimeSlider timeChanged={this.timeChanged}/>
       <div className="h-25 overflow-auto">
         <RelationshipEditor db={db} editorState={this.state.editor} updateOccurred={this.updateOccurred} />
       </div>

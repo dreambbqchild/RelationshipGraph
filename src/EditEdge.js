@@ -13,7 +13,7 @@ class EditEdge extends React.PureComponent {
         this.edge = null;
     }
 
-    async componentDidMount(prevProps) {
+    async componentDidMount() {
         const { db, from, to } = this.props;
         this.edge = await db.getEdgeAsync(`${from}→${to}`);
         if (this.edge) {
@@ -52,28 +52,34 @@ class EditEdge extends React.PureComponent {
         this.props.updateOccurred({ op: op, type: 'edge', id: edgeId, props: ['points'] });
     }
 
-    render() {
-        return <div>
-            <div className="row">
+    renderRows() {
+        return this.state.points.map((row, i) => {
+            return <div className="row" key={i}>
                 <div className="col-3">
                     <div className="form-group">
                         <label htmlFor="nodeName">At Time:</label>
-                        <input id="nodeName" type="number" className="form-control" onChange={(e) => this.update('index', e.target.value)} value={this.state.points[0].index} />
+                        <input id="nodeName" type="number" className="form-control" onChange={(e) => this.update('index', e.target.value)} value={row.index} />
                     </div>
                 </div>
                 <div className="col-3">
                     <div className="form-group">
                         <label htmlFor="nodeName">Starting Strength:</label>
-                        <input id="nodeName" type="number" className="form-control" onChange={(e) => this.update('start', e.target.value)} value={this.state.points[0].start} />
+                        <input id="nodeName" type="number" className="form-control" onChange={(e) => this.update('start', e.target.value)} value={row.start} />
                     </div>
                 </div>
                 <div className="col-3">
                     <div className="form-group">
                         <label htmlFor="nodeName">Ending Strength:</label>
-                        <input id="nodeName" type="number" className="form-control" onChange={(e) => this.update('end', e.target.value)} value={this.state.points[0].end} />
+                        <input id="nodeName" type="number" className="form-control" onChange={(e) => this.update('end', e.target.value)} value={row.end} />
                     </div>
                 </div>
             </div>
+        });
+    }
+
+    render() {
+        return <div>
+            {this.renderRows()}
             <div className="row">
                 <div className="col-3">
                     <button className="btn btn-primary" onClick={this.saveChanges}>Save Changes</button>
