@@ -1,15 +1,3 @@
-// var DBDeleteRequest = window.indexedDB.deleteDatabase("first-story-relationship-graph");
-
-// DBDeleteRequest.onerror = function(event) {
-//   console.log("Error deleting database.");
-// };
- 
-// DBDeleteRequest.onsuccess = function(event) {
-//   console.log("Database deleted successfully");
-    
-//   console.log(event.result); // should be undefined
-// };
-
 class RelationshipDb {
     constructor(storyName) {
         var dbPromise = new Promise((resolve, reject) => {
